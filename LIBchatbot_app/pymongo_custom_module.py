@@ -32,7 +32,7 @@ def get_mongodb_row(DatabaseName, CollectionName):
         new_Cluster_list.append(row['new_Cluster'])
         AllField_list.append((row['Question'], row['Q_WS'], row['A_WS'], row['Answer'], row['_id']))
 
-    return Question_list, Q_WS_list, Answer_list, new_Cluster_list, AllField_list
+    return Question_list, Q_WS_list, A_WS_list, Answer_list, new_Cluster_list, AllField_list
     
 
 def get_and_append_mongodb_row(DatabaseName, CollectionName, frame):

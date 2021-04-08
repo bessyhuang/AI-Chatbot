@@ -6,7 +6,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 
 def text_process(mess):
-    with open("C:/Users/bessyhuang/Desktop/django_linebot_files/LIBchatbot_app/StopWords/stop_words.txt", encoding="utf-8") as f:
+    with open("/home/bessyhuang/AI-Chatbot/LIBchatbot_app/StopWords/stop_words.txt", encoding="utf-8") as f:
         stop_words = f.read().splitlines()
 
     CustomStopwords = ['「', '」', '，', '。', '？', '、', '【', '】', '（', '）', '.', '﹖']
@@ -17,7 +17,63 @@ def text_process(mess):
     # 非標點符號的 characters，就存進 list
     nopunc = ''
     for char in mess:
-        if char not in string.punctuation:
+        if 'Turnitin' in char:
+            char = 'Turnitin'
+            nopunc = nopunc + char + ' '
+        elif 'Ezproxy' in char:
+            char = 'Ezproxy'
+            nopunc = nopunc + char + ' '
+        elif 'TEJ' in char:
+            char = 'TEJ'
+            nopunc = nopunc + char + ' '
+        elif 'MOD' in char:
+            char = 'MOD'
+            nopunc = nopunc + char + ' '
+        elif 'Proxy' in char:
+            char = 'Proxy'
+            nopunc = nopunc + char + ' '
+        elif 'APA' in char:
+            char = 'APA'
+            nopunc = nopunc + char + ' '
+        elif 'EndNote' in char:
+            char = 'EndNote'
+            nopunc = nopunc + char + ' '
+        elif 'NDDS' in char:
+            char = 'NDDS'
+            nopunc = nopunc + char + ' '
+        elif 'JCR' in char:
+            char = 'JCR'
+            nopunc = nopunc + char + ' '
+        elif 'The Economist' in char:
+            char = 'The Economist'
+            nopunc = nopunc + char + ' '
+        elif 'Science Citation Index' in char:
+            char = 'SCI'
+            nopunc = nopunc + char + ' '
+
+        elif '"' in char:
+            char = char.replace('"', '').replace('＞', '').replace('-', '').replace('>', '')
+            nopunc = nopunc + char + ' '
+
+        elif '?' in char:
+            pass
+        elif '//' in char:
+            pass
+        elif '*' in char:
+            pass
+        elif '>' in char:
+            pass
+        elif '<' in char:
+            pass
+        elif ':' in char:
+            pass
+        elif '@' in char:
+            pass
+        elif '：' in char:
+            pass
+        elif '.' in char:
+            pass
+        elif char not in string.punctuation:
             nopunc = nopunc + char + ' '
     # 非停用字的 word，轉成小寫字母後就存進 list
     return ' '.join([word.lower() for word in nopunc.split() if word.lower() not in STOPWORDS])
