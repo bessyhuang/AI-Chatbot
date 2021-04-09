@@ -212,7 +212,7 @@ custom_match_dict = {
     '零食':'食物', '飲料':'飲料', 
     '系統':'電腦', '借閱證':'閱覽證', 
     '團討室':'團體 討論室', '互借':'館際 互借', 
-    '智慧財產權':'智財權', '誰': 'wiki'
+    '智慧財產權':'智財權', '誰': 'wiki', '書籍':'書'
     } # wiki_category : FAQ_vocab 
 # ------------------------------------------------------------
 # ----- 查詢館藏的停用詞擷取 -----------------------------------
@@ -269,8 +269,8 @@ def callback(request):
                 print(clean_query)
                 print('---------------------------\n')
                 
-                # ----- wikipedia 擴展關鍵詞 -------------------------------------
                 final_query = []
+                # ----- wikipedia 擴展關鍵詞 -------------------------------------
                 for w in clean_query:
                     if (w in total_wiki) and (w not in vocab.keys()):
                         # e.g. 品客、零食
@@ -331,21 +331,23 @@ def callback(request):
                             search_WIKI_KEYWORD = ""
                             for w in final_query: 
                                 if w not in cluster530_stopwords:
-                                    search_WIKI_KEYWORD = w
+                                    search_WIKI_KEYWORD += w
                     
                             print('\n查詢 Wikipedia 的關鍵字擷取：', search_WIKI_KEYWORD)
                             raw_res = A_list[res[0]]
                 
-                
-                            # 摘要
-                            page1 = wptools.page(search_WIKI_KEYWORD, lang='zh').get_restbase('/page/summary/')
-                            summary = page1.data['exrest']
-                            wikiURL = page1.data['url']
+                            try:
+                                # 摘要
+                                page1 = wptools.page(search_WIKI_KEYWORD, lang='zh').get_restbase('/page/summary/')
+                                summary = page1.data['exrest']
+                                wikiURL = page1.data['url']
 
-                            cc = OpenCC('s2twp')
-                            final_res = cc.convert(summary) + '\n' + wikiURL
-                            msg = [Q_list[res[0]], final_res]
-                            msg_list.append(msg)
+                                cc = OpenCC('s2twp')
+                                final_res = cc.convert(summary) + '\n' + wikiURL
+                                msg = [Q_list[res[0]], final_res]
+                                msg_list.append(msg)
+                            except:
+                                pass
                         
                         elif res[0] - 1 == 356:
                             pass
