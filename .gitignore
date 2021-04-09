@@ -2,3 +2,5 @@ django_venv
 .google-cookie
 ngrok-stable-windows-amd64.zip
 __pycache__
+data
+data.zip

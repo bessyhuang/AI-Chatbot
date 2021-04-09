@@ -22,10 +22,16 @@ sys.path.insert(0, '/home/bessyhuang/AI-Chatbot/LIBchatbot_app')
 import pymongo_custom_module as PymongoCM
 import text_preprocess as tp
 
+from ckiptagger import data_utils, construct_dictionary, WS
+import os
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 line_bot_api = LineBotApi(settings.LINE_CHANNEL_ACCESS_TOKEN)
 parser = WebhookParser(settings.LINE_CHANNEL_SECRET)
 
+### pip install gdown ###
+# data_utils.download_data_gdown("./")
+    
 # ------------------------------------------------------------------------------------------
 Question_list, Q_WS_list, A_WS_list, Answer_list, new_Cluster_list, AllField_list = PymongoCM.get_mongodb_row("Library", "FAQ")
 FAQ_df = pd.DataFrame({"content": Q_WS_list, "new_Cluster": new_Cluster_list, "answer": Answer_list})
@@ -224,16 +230,23 @@ for ws in Cluster530:
 # print('***', cluster530_stopwords)
 # ------------------------------------------------------------
 
-def Keyword_filter(stemmed_query):
-	query_keyword = []
-	for q in stemmed_query:
-		print(q)
-		if q not in vocab.keys():
-			query_keyword.append(q)
-		else:
-			pass
-	return query_keyword
-
+def query_WS(query):
+    ws = WS("./data", disable_cuda=False)
+    
+    with open('./LibraryCommonWords/WikiDict_plus_QAkeywordsDict.pkl', 'rb') as fp:
+        WikiDict_plus_QAkeywordsDict = pickle.load(fp)
+    fp.close()
+    dictionary1 = construct_dictionary(WikiDict_plus_QAkeywordsDict)
+    
+    word_sentence_list = ws([query], 
+            segment_delimiter_set = {":" ,"：" ,":" ,".." ,"，" ,"," ,"-" ,"─" ,"－" ,"──" ,"." ,"……" ,"…" ,"..." ,"!" ,"！" ,"〕" ,"」" ,"】" ,"》" ,"【" ,"）" ,"｛" ,"｝" ,"“" ,"(" ,"「" ,"]" ,")" ,"（" ,"《" ,"[" ,"『" ,"』" ,"〔" ,"、" ,"．" ,"。" ,"." ,"‧" ,"﹖" ,"？" ,"?" ,"?" ,"；" ," 　" ,"" ,"　" ,"" ,"ㄟ" ," :" ,"？" ,"〞" ,"]" ,"／" ,"=" ,"？" ," -" ,"@" ,"." ,"～" ," ：" ,"：" ,"<", ">" ," - " ,"──" ,"~~" ,"`" ,": " ,"#" ,"/" ,"〝" ,"：" ,"'" ,"$C" ,"?" ,"?" ,"*" ,"／" ,"[" ,"." ,"?" ,"-" ,"～～" ,"\""},
+            recommend_dictionary = dictionary1, # 效果最好！
+            coerce_dictionary = construct_dictionary({'OPAC':2, 'OK':2, '滯還金':2, '浮水印':2, '索書號':2, '圖書館':2}), # 強制字典
+    )
+    print(word_sentence_list[0])
+    return word_sentence_list[0]
+    
+    
 @csrf_exempt
 def callback(request):
     if request.method == 'POST':
@@ -250,7 +263,8 @@ def callback(request):
         for event in events:
             if isinstance(event, MessageEvent):  # 如果有訊息事件
                 # query預處理，為了讓查詢跟索引內容相同
-                query = event.message.text.split()
+                query = query_WS(event.message.text)
+                print('Raw Query:', query)
                 clean_query = list(''.join(tp.text_process(query)).split())
                 print(clean_query)
                 print('---------------------------\n')
@@ -287,10 +301,18 @@ def callback(request):
                 
                 results = query_tfidf(final_query, INV_INDEX)
                 msg_list = []
+                
+                total_score = 0
+                for rank, res in enumerate(results):
+                    total_score += res[1]
+                avg_score = total_score / len(results)
+                print('avg_score {} = total_score {} / n_results {}'.format(avg_score, total_score, len(results)))
+                
+                
                 for rank, res in enumerate(results):
                     print("排名 {:2d} DOCID {:8d} ClusterN {:8d} SCORE {:.3f} \n內容 {:}\n".format(rank+1, res[0], res[0]-1, res[1], Q_list[res[0]][:50]))
                     
-                    if res[1] > 1:
+                    if res[1] > avg_score:
                         # ----- 查詢館藏的關鍵字擷取 -----------------------------------
                         if res[0] - 1 == 529:
                             search_FJULIB_KEYWORD = ""
