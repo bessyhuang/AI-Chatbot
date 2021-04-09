@@ -212,7 +212,7 @@ custom_match_dict = {
     '零食':'食物', '飲料':'飲料', 
     '系統':'電腦', '借閱證':'閱覽證', 
     '團討室':'團體 討論室', '互借':'館際 互借', 
-    '智慧財產權':'智財權'
+    '智慧財產權':'智財權', '誰': 'wiki'
     } # wiki_category : FAQ_vocab 
 # ------------------------------------------------------------
 # ----- 查詢館藏的停用詞擷取 -----------------------------------
@@ -318,7 +318,7 @@ def callback(request):
                             search_FJULIB_KEYWORD = ""
                             for w in final_query: 
                                 if w not in cluster529_stopwords:
-                                    search_FJULIB_KEYWORD = w
+                                    search_FJULIB_KEYWORD += w
                     
                             print('\n查詢館藏的關鍵字擷取：', search_FJULIB_KEYWORD)
                             raw_res = A_list[res[0]]
@@ -347,6 +347,9 @@ def callback(request):
                             msg = [Q_list[res[0]], final_res]
                             msg_list.append(msg)
                         
+                        elif res[0] - 1 == 356:
+                            pass
+                            
                         else:
                             final_res = A_list[res[0]]
                             msg = [Q_list[res[0]], final_res]
