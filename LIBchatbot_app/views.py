@@ -25,8 +25,7 @@ import text_preprocess as tp
 from ckiptagger import data_utils, construct_dictionary, WS, POS, NER
 import os
 
-import datetime
-import pytz
+from datetime import datetime, timezone, timedelta
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 line_bot_api = LineBotApi(settings.LINE_CHANNEL_ACCESS_TOKEN)
@@ -379,11 +378,11 @@ def callback(request):
                                     else:
                                         pass
                                         
-                                if '今天' in pos_Nd:                                    
-                                    mytz = pytz.timezone('Asia/Taipei')
-                                    mytime = mytz.localize(datetime.datetime.now())
-                                    print(mytime)
-                                    final_res = judge_day(mytime.strftime("%A"))
+                                if '今天' in pos_Nd:                 
+                                    mytime_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
+                                    mytime_tw = mytime_utc.astimezone(timezone(timedelta(hours=8)))
+                                    print(mytime_tw)
+                                    final_res = judge_day(mytime_tw.strftime("%A"))
                                     
                                     msg = [Q_list[res[0]], final_res]
                                     msg_list.append(msg)
