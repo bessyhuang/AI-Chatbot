@@ -22,8 +22,11 @@ sys.path.insert(0, '/home/bessyhuang/AI-Chatbot/LIBchatbot_app')
 import pymongo_custom_module as PymongoCM
 import text_preprocess as tp
 
-from ckiptagger import data_utils, construct_dictionary, WS
+from ckiptagger import data_utils, construct_dictionary, WS, POS, NER
 import os
+
+import datetime
+import pytz
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 line_bot_api = LineBotApi(settings.LINE_CHANNEL_ACCESS_TOKEN)
@@ -232,6 +235,8 @@ for ws in Cluster530:
 
 def query_WS(query):
     ws = WS("./data", disable_cuda=False)
+    pos = POS("./data", disable_cuda=False)
+    #ner = NER("./data", disable_cuda=False)
     
     with open('./LibraryCommonWords/WikiDict_plus_QAkeywordsDict.pkl', 'rb') as fp:
         WikiDict_plus_QAkeywordsDict = pickle.load(fp)
@@ -244,8 +249,23 @@ def query_WS(query):
             coerce_dictionary = construct_dictionary({'OPAC':2, 'OK':2, '滯還金':2, '浮水印':2, '索書號':2, '圖書館':2}), # 強制字典
     )
     print(word_sentence_list[0])
-    return word_sentence_list[0]
     
+    pos_sentence_list = pos(word_sentence_list)
+    print(pos_sentence_list[0])
+
+    #entity_sentence_list = ner(word_sentence_list, pos_sentence_list)
+    #print(entity_sentence_list)
+    
+    return word_sentence_list[0], pos_sentence_list[0]
+    
+def judge_day(day):
+    if day == 'Sunday':
+        return '今天 （Sunday）各館的開放時間如下：\n濟時樓：9:00 ~ 18:00\n公博樓：不開放\n國璽樓：8:00 ~ 23:00'
+    elif day == 'Saturday':
+        return '今天 （Saturday）各館的開放時間如下：\n濟時樓：9:00 ~ 18:00\n公博樓：9:00 ~ 18:00\n國璽樓：8:00 ~ 23:00'
+    else:
+        return '今天是平日 各館的開放時間如下：\n濟時樓：8:00 ~ 22:00\n公博樓：8:00 ~ 21:30\n國璽樓：8:00 ~ 23:00'
+
     
 @csrf_exempt
 def callback(request):
@@ -263,7 +283,7 @@ def callback(request):
         for event in events:
             if isinstance(event, MessageEvent):  # 如果有訊息事件
                 # query預處理，為了讓查詢跟索引內容相同
-                query = query_WS(event.message.text)
+                query, query_pos = query_WS(event.message.text)
                 print('Raw Query:', query)
                 clean_query = list(''.join(tp.text_process(query)).split())
                 print(clean_query)
@@ -349,6 +369,30 @@ def callback(request):
                             except:
                                 pass
                         
+                        elif res[0] - 1 == 139:
+                            pos_Nd = []
+                            if 'Nd' in query_pos:
+                                for ws, pos in zip(query, query_pos):
+                                    if pos == 'Nd':
+                                        pos_Nd.append(ws)
+                                        #print('---', ws, pos)
+                                    else:
+                                        pass
+                                        
+                                if '今天' in pos_Nd:                                    
+                                    mytz = pytz.timezone('Asia/Taipei')
+                                    mytime = mytz.localize(datetime.datetime.now())
+                                    print(mytime)
+                                    final_res = judge_day(mytime.strftime("%A"))
+                                    
+                                    msg = [Q_list[res[0]], final_res]
+                                    msg_list.append(msg)
+                                    
+                            else:
+                                final_res = '輔大圖書館各館的開放時間，詳情請見: http://web.lib.fju.edu.tw/chi/intro/opentime\n國定及校定假日特殊開放時間: http://web.lib.fju.edu.tw/chi/news/20200915'
+                                msg = [Q_list[res[0]], final_res]
+                                msg_list.append(msg)
+                            
                         elif res[0] - 1 == 356:
                             pass
                             
