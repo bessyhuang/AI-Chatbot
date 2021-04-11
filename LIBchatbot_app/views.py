@@ -368,7 +368,7 @@ def callback(request):
                             except:
                                 pass
                         
-                        elif res[0] - 1 == 139:
+                        elif res[0] - 1 == 139 or res[0] - 1 == 158 or res[0] - 1 == 65:
                             pos_Nd = []
                             if 'Nd' in query_pos:
                                 for ws, pos in zip(query, query_pos):
