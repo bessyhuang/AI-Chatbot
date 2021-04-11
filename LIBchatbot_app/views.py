@@ -259,11 +259,11 @@ def query_WS(query):
     
 def judge_day(day):
     if day == 'Sunday':
-        return '今天 （Sunday）各館的開放時間如下：\n濟時樓：9:00 ~ 18:00\n公博樓：不開放\n國璽樓：8:00 ~ 23:00'
+        return 'Sunday 各館的開放時間如下：\n濟時樓：9:00 ~ 18:00\n公博樓：不開放\n國璽樓：8:00 ~ 23:00'
     elif day == 'Saturday':
-        return '今天 （Saturday）各館的開放時間如下：\n濟時樓：9:00 ~ 18:00\n公博樓：9:00 ~ 18:00\n國璽樓：8:00 ~ 23:00'
+        return 'Saturday 各館的開放時間如下：\n濟時樓：9:00 ~ 18:00\n公博樓：9:00 ~ 18:00\n國璽樓：8:00 ~ 23:00'
     else:
-        return '今天是平日 各館的開放時間如下：\n濟時樓：8:00 ~ 22:00\n公博樓：8:00 ~ 21:30\n國璽樓：8:00 ~ 23:00'
+        return '平日 各館的開放時間如下：\n濟時樓：8:00 ~ 22:00\n公博樓：8:00 ~ 21:30\n國璽樓：8:00 ~ 23:00'
 
     
 @csrf_exempt
@@ -378,12 +378,38 @@ def callback(request):
                                     else:
                                         pass
                                         
-                                if '今天' in pos_Nd:                 
+                                if '今天' in pos_Nd:              
                                     mytime_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
                                     mytime_tw = mytime_utc.astimezone(timezone(timedelta(hours=8)))
                                     print(mytime_tw)
                                     final_res = judge_day(mytime_tw.strftime("%A"))
                                     
+                                    msg = [Q_list[res[0]], final_res]
+                                    msg_list.append(msg)
+                                    
+                                elif '週一' in pos_Nd or '平日' in pos_Nd or '週二' in pos_Nd or '週三' in pos_Nd or '週四' in pos_Nd or '週五' in pos_Nd:
+                                    final_res = judge_day('Weekdays')
+                                    msg = [Q_list[res[0]], final_res]
+                                    msg_list.append(msg)
+                                                                
+                                elif '週六' in pos_Nd:
+                                    final_res = judge_day('Saturday')
+                                    msg = [Q_list[res[0]], final_res]
+                                    msg_list.append(msg)
+                                    
+                                elif '週日' in pos_Nd:
+                                    final_res = judge_day('Sunday')
+                                    msg = [Q_list[res[0]], final_res]
+                                    msg_list.append(msg)
+                                    
+                                elif '假日' in pos_Nd:
+                                    final_res1 = judge_day('Saturday')
+                                    final_res2 = judge_day('Sunday')
+                                    msg = [Q_list[res[0]], final_res1 + '\n------\n' + final_res2]
+                                    msg_list.append(msg)
+                                
+                                else:
+                                    final_res = '輔大圖書館各館的開放時間，詳情請見: http://web.lib.fju.edu.tw/chi/intro/opentime\n國定及校定假日特殊開放時間: http://web.lib.fju.edu.tw/chi/news/20200915'
                                     msg = [Q_list[res[0]], final_res]
                                     msg_list.append(msg)
                                     
