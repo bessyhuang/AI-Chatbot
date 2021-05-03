@@ -186,7 +186,7 @@ for ClusterN in range(-1, sectors_len -1, 1):
 
 
 # ----- wikipedia 擴展關鍵詞 ---------------------------------
-with open('./LIBchatbot_app/food_dict.pkl', 'rb') as fp:
+with open('./LIBchatbot_app/food_expand_dict.pkl', 'rb') as fp:
     wiki_food_dict = pickle.load(fp)
 fp.close()
 
@@ -195,28 +195,28 @@ subCategory_dict = defaultdict(str)
 for key, subcat_items in wiki_food_dict.items():
     for item in subcat_items:
         subCategory_dict[item] = key
-# print(subCategory_dict)
+#print('+++', wiki_food_dict['食物'], subCategory_dict['蔬菜'])
 
 
 wiki_GroupCategory_list = []
 for key in wiki_food_dict.keys():
     wiki_GroupCategory_list.append(wiki_food_dict[key] + [key])
-# print('wiki_category_list = ', wiki_GroupCategory_list)
+#print('wiki_category_list = ', wiki_GroupCategory_list)
 
 
 total_wiki = []
 for i in wiki_GroupCategory_list:
     total_wiki += i
-# print('total_wiki = ', total_wiki)
+#print('total_wiki = ', total_wiki)
 
 
 custom_match_dict = {
-    '吃':'食物',
     '零食':'食物', '飲料':'飲料', 
     '系統':'電腦', '借閱證':'閱覽證', 
     '團討室':'團體 討論室', '互借':'館際 互借', 
     '智慧財產權':'智財權', '誰': 'wiki', '書籍':'書'
-    } # wiki_category : FAQ_vocab 
+    } # wiki_category : FAQ_vocab
+
 # ------------------------------------------------------------
 # ----- 查詢館藏的停用詞擷取 -----------------------------------
 cluster529_stopwords = set()
@@ -293,24 +293,14 @@ def callback(request):
                 # ----- wikipedia 擴展關鍵詞 -------------------------------------
                 for w in clean_query:
                     if (w in total_wiki) and (w not in vocab.keys()):
-                        # e.g. 品客、零食
                         wikiCategory_term = subCategory_dict[w]
-                        query_term = custom_match_dict[wikiCategory_term]
-
-                        final_query.append(query_term)
-
-                    elif (w in total_wiki) and (w in vocab.keys()):
-                        # e.g. 飲料、食物
-                        final_query.append(w)
-
-                    elif w in custom_match_dict.keys():
-                        query_term = custom_match_dict[w]
-                        if ' ' in query_term:
-                            query_list = query_term.split()
-                            for i in query_list:
-                                final_query.append(i)
-                        else:
+                        try:
+                            # e.g. 零食
+                            query_term = custom_match_dict[wikiCategory_term]
                             final_query.append(query_term)
+                        except:
+                            # e.g. 食物
+                            final_query.append(wikiCategory_term)
 
                     else:
                         # 沒有在 FAQ ，也沒有在 wiki            
