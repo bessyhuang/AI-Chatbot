@@ -214,16 +214,26 @@ custom_match_dict = {
     '零食':'食物', '飲料':'飲料', 
     '系統':'電腦', '借閱證':'閱覽證', 
     '團討室':'團體 討論室', '互借':'館際 互借', 
-    '智慧財產權':'智財權', '誰': 'wiki', '書籍':'書'
+    '智慧財產權':'智財權', '誰': 'wiki', '書籍':'書',
+    '那些':'哪些', '哪些':'那些'
     } # wiki_category : FAQ_vocab
 
 # ------------------------------------------------------------
 # ----- 查詢館藏的停用詞擷取 -----------------------------------
 cluster529_stopwords = set()
 Cluster529 = list(sectors.get_group('Cluster 529').content)[0]
+Cluster194 = list(sectors.get_group('Cluster 194').content)[0]
 for ws in Cluster529:
     cluster529_stopwords.add(ws)
-# print('***', cluster529_stopwords)
+for ws in Cluster194:
+    if ws == '空中英語教室':
+        pass
+    else:
+        cluster529_stopwords.add(ws)
+cluster529_stopwords.add('可以')
+cluster529_stopwords.add('幫')
+cluster529_stopwords.add('查')
+#print('***', cluster529_stopwords)
 # ------------------------------------------------------------
 # ----- 查詢Wikipedia的停用詞擷取 ------------------------------
 cluster530_stopwords = set()
@@ -246,7 +256,7 @@ def query_WS(query):
     word_sentence_list = ws([query], 
             segment_delimiter_set = {":" ,"：" ,":" ,".." ,"，" ,"," ,"-" ,"─" ,"－" ,"──" ,"." ,"……" ,"…" ,"..." ,"!" ,"！" ,"〕" ,"」" ,"】" ,"》" ,"【" ,"）" ,"｛" ,"｝" ,"“" ,"(" ,"「" ,"]" ,")" ,"（" ,"《" ,"[" ,"『" ,"』" ,"〔" ,"、" ,"．" ,"。" ,"." ,"‧" ,"﹖" ,"？" ,"?" ,"?" ,"；" ," 　" ,"" ,"　" ,"" ,"ㄟ" ," :" ,"？" ,"〞" ,"]" ,"／" ,"=" ,"？" ," -" ,"@" ,"." ,"～" ," ：" ,"：" ,"<", ">" ," - " ,"──" ,"~~" ,"`" ,": " ,"#" ,"/" ,"〝" ,"：" ,"'" ,"$C" ,"?" ,"?" ,"*" ,"／" ,"[" ,"." ,"?" ,"-" ,"～～" ,"\""},
             recommend_dictionary = dictionary1, # 效果最好！
-            coerce_dictionary = construct_dictionary({'OPAC':2, 'OK':2, '滯還金':2, '浮水印':2, '索書號':2, '圖書館':2}), # 強制字典
+            coerce_dictionary = construct_dictionary({'OPAC':2, 'OK':2, '滯還金':2, '浮水印':2, '索書號':2, '圖書館':2, '館藏':2}), # 強制字典
     )
     print(word_sentence_list[0])
     
@@ -303,8 +313,13 @@ def callback(request):
                             final_query.append(wikiCategory_term)
 
                     else:
-                        # 沒有在 FAQ ，也沒有在 wiki            
-                        final_query.append(w)
+                        # 沒有在 FAQ ，也沒有在 wiki
+                        try:
+                            query_term = custom_match_dict[w]
+                            final_query.append(w)
+                            final_query.append(query_term)
+                        except:
+                            final_query.append(w)
 
                 print('Final_query =', final_query)
                 print('--------------------------------------------------------')
@@ -324,14 +339,14 @@ def callback(request):
                     
                     if res[1] > avg_score:
                         # ----- 查詢館藏的關鍵字擷取 -----------------------------------
-                        if res[0] - 1 == 529:
+                        if res[0] - 1 == 529 or res[0] - 1 == 194 :
                             search_FJULIB_KEYWORD = ""
                             for w in final_query: 
                                 if w not in cluster529_stopwords:
                                     search_FJULIB_KEYWORD += w
-                    
+
                             print('\n查詢館藏的關鍵字擷取：', search_FJULIB_KEYWORD)
-                            raw_res = A_list[res[0]]
+                            raw_res = 'https://library.lib.fju.edu.tw:444/search~S0*cht/?searchtype=Y&searcharg=' #A_list[res[0]]
                             final_res = raw_res + search_FJULIB_KEYWORD
                             msg = [Q_list[res[0]], final_res]
                             msg_list.append(msg)
@@ -408,7 +423,33 @@ def callback(request):
                                 final_res = '輔大圖書館各館的開放時間，詳情請見: http://web.lib.fju.edu.tw/chi/intro/opentime\n國定及校定假日特殊開放時間: http://web.lib.fju.edu.tw/chi/news/20200915'
                                 msg = [Q_list[res[0]], final_res]
                                 msg_list.append(msg)
+                        
+                        elif res[0] - 1 == 318:
+                            if '大學生' in final_query:
+                                final_res = '大學部學生借閱總數以三十冊為限，借期為二十八日；無人預約時得續借一次。'
+                                msg = [Q_list[res[0]], final_res]
+                                msg_list.append(msg)
+                                
+                            elif '研究生' in final_query:
+                                final_res = '研究生借閱總數以四十冊為限，借期為四十二日；無人預約時得續借一次。研究生自入學第二年起，因撰寫學位論文之需而提出申請者，得辦理延長借書。延長借書之借期為六十日；無人預約時得續借一次。'
+                                msg = [Q_list[res[0]], final_res]
+                                msg_list.append(msg)
                             
+                            elif '老師' in final_query:
+                                final_res = '本校教師借閱總數以七十五冊為限，借期為一百二十日；無人預約時得續借一次。教師以其研究計畫專案經費購買之圖書，得辦理「專案借書」，借期至該計畫結束為止，不受第四款冊數及借期之限制。'
+                                msg = [Q_list[res[0]], final_res]
+                                msg_list.append(msg)
+                            
+                            elif '校友' in final_query:
+                                final_res = '校友及退休人員借書以五冊為限，借期為二十八日，不得續借。'
+                                msg = [Q_list[res[0]], final_res]
+                                msg_list.append(msg)
+                                
+                            else:
+                                final_res = A_list[res[0]]
+                                msg = [Q_list[res[0]], final_res]
+                                msg_list.append(msg)
+                               
                         elif res[0] - 1 == 356:
                             pass
                             
