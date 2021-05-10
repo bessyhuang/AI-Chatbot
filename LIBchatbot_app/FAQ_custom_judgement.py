@@ -27,13 +27,13 @@ def OpeningHours_parser(query_ws, query_pos):
         elif '週一' in Nd_words or '平日' in Nd_words or '週二' in Nd_words or '週三' in Nd_words or '週四' in Nd_words or '週五' in Nd_words:
             return judge_day('Weekdays')
                                 
-        elif '週六' in pos_Nd:
+        elif '週六' in Nd_words:
             return judge_day('Saturday')
     
-        elif '週日' in pos_Nd:
+        elif '週日' in Nd_words:
             return judge_day('Sunday')
     
-        elif '假日' in pos_Nd:
+        elif '假日' in Nd_words:
             final_res1 = judge_day('Saturday')
             final_res2 = judge_day('Sunday')
             return final_res1 + '\n------\n' + final_res2
