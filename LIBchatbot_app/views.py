@@ -21,11 +21,12 @@ import sys
 sys.path.insert(0, '/home/bessyhuang/AI-Chatbot/LIBchatbot_app')
 import pymongo_custom_module as PymongoCM
 import text_preprocess as tp
+import FAQ_custom_judgement as Judge
 
 from ckiptagger import data_utils, construct_dictionary, WS, POS, NER
 import os
 
-from datetime import datetime, timezone, timedelta
+
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 line_bot_api = LineBotApi(settings.LINE_CHANNEL_ACCESS_TOKEN)
@@ -215,7 +216,7 @@ custom_match_dict = {
     '系統':'電腦', '借閱證':'閱覽證', 
     '團討室':'團體 討論室', '互借':'館際 互借', 
     '智慧財產權':'智財權', '誰': 'wiki', '書籍':'書',
-    '那些':'哪些', '哪些':'那些'
+    '那些':'哪些', '哪些':'那些', '開':'開館'
     } # wiki_category : FAQ_vocab
 
 # ------------------------------------------------------------
@@ -267,14 +268,6 @@ def query_WS(query):
     #print(entity_sentence_list)
     
     return word_sentence_list[0], pos_sentence_list[0]
-    
-def judge_day(day):
-    if day == 'Sunday':
-        return 'Sunday 各館的開放時間如下：\n濟時樓：9:00 ~ 18:00\n公博樓：不開放\n國璽樓：8:00 ~ 23:00'
-    elif day == 'Saturday':
-        return 'Saturday 各館的開放時間如下：\n濟時樓：9:00 ~ 18:00\n公博樓：9:00 ~ 18:00\n國璽樓：8:00 ~ 23:00'
-    else:
-        return '平日 各館的開放時間如下：\n濟時樓：8:00 ~ 22:00\n公博樓：8:00 ~ 21:30\n國璽樓：8:00 ~ 23:00'
 
     
 @csrf_exempt
@@ -378,56 +371,13 @@ def callback(request):
                                     msg = [Q_list[res[0]], final_res]
                                     msg_list.append(msg)
                         
-                            elif res[0] - 1 == 139 or res[0] - 1 == 158 or res[0] - 1 == 65:
-                                pos_Nd = []
-                                if 'Nd' in query_pos:
-                                    for ws, pos in zip(query, query_pos):
-                                        if pos == 'Nd':
-                                            pos_Nd.append(ws)
-                                            #print('---', ws, pos)
-                                        else:
-                                            pass
-                                        
-                                    if '今天' in pos_Nd:              
-                                        mytime_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
-                                        mytime_tw = mytime_utc.astimezone(timezone(timedelta(hours=8)))
-                                        print(mytime_tw)
-                                        final_res = judge_day(mytime_tw.strftime("%A"))
-                                    
-                                        msg = [Q_list[res[0]], final_res]
-                                        msg_list.append(msg)
-                                    
-                                    elif '週一' in pos_Nd or '平日' in pos_Nd or '週二' in pos_Nd or '週三' in pos_Nd or '週四' in pos_Nd or '週五' in pos_Nd:
-                                        final_res = judge_day('Weekdays')
-                                        msg = [Q_list[res[0]], final_res]
-                                        msg_list.append(msg)
-                                                                
-                                    elif '週六' in pos_Nd:
-                                        final_res = judge_day('Saturday')
-                                        msg = [Q_list[res[0]], final_res]
-                                        msg_list.append(msg)
-                                    
-                                    elif '週日' in pos_Nd:
-                                        final_res = judge_day('Sunday')
-                                        msg = [Q_list[res[0]], final_res]
-                                        msg_list.append(msg)
-                                    
-                                    elif '假日' in pos_Nd:
-                                        final_res1 = judge_day('Saturday')
-                                        final_res2 = judge_day('Sunday')
-                                        msg = [Q_list[res[0]], final_res1 + '\n------\n' + final_res2]
-                                        msg_list.append(msg)
+                            elif res[0] - 1 == 139 or res[0] - 1 == 158 or res[0] - 1 == 65 or res[0] - 1 == 85:
+                                final_res = Judge.OpeningHours_parser(query, query_pos)
+                                msg = [Q_list[res[0]], final_res]
+                                msg_list.append(msg)
+                                break
                                 
-                                    else:
-                                        final_res = '輔大圖書館各館的開放時間，詳情請見: http://web.lib.fju.edu.tw/chi/intro/opentime\n國定及校定假日特殊開放時間: http://web.lib.fju.edu.tw/chi/news/20200915'
-                                        msg = [Q_list[res[0]], final_res]
-                                        msg_list.append(msg)
-                                    
-                                else:
-                                    final_res = '輔大圖書館各館的開放時間，詳情請見: http://web.lib.fju.edu.tw/chi/intro/opentime\n國定及校定假日特殊開放時間: http://web.lib.fju.edu.tw/chi/news/20200915'
-                                    msg = [Q_list[res[0]], final_res]
-                                    msg_list.append(msg)
-                        
+                                
                             elif res[0] - 1 == 318:
                                 if '大學生' in final_query:
                                     final_res = '大學部學生借閱總數以三十冊為限，借期為二十八日；無人預約時得續借一次。'
