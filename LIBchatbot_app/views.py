@@ -336,127 +336,136 @@ def callback(request):
                 
                 for rank, res in enumerate(results):
                     print("排名 {:2d} DOCID {:8d} ClusterN {:8d} SCORE {:.3f} \n內容 {:}\n".format(rank+1, res[0], res[0]-1, res[1], Q_list[res[0]][:50]))
-                    
-                    if res[1] > avg_score:
-                        # ----- 查詢館藏的關鍵字擷取 -----------------------------------
-                        if res[0] - 1 == 529 or res[0] - 1 == 194 :
-                            search_FJULIB_KEYWORD = ""
-                            for w in final_query: 
-                                if w not in cluster529_stopwords:
-                                    search_FJULIB_KEYWORD += w
+                    if res[1] > 0.673:
+                        if res[1] > avg_score:
+                            # ----- 查詢館藏的關鍵字擷取 -----------------------------------
+                            if res[0] - 1 == 529 or res[0] - 1 == 194 :
+                                search_FJULIB_KEYWORD = ""
+                                for w in final_query: 
+                                    if w not in cluster529_stopwords:
+                                        search_FJULIB_KEYWORD += w
 
-                            print('\n查詢館藏的關鍵字擷取：', search_FJULIB_KEYWORD)
-                            raw_res = 'https://library.lib.fju.edu.tw:444/search~S0*cht/?searchtype=Y&searcharg=' #A_list[res[0]]
-                            final_res = raw_res + search_FJULIB_KEYWORD
-                            msg = [Q_list[res[0]], final_res]
-                            msg_list.append(msg)
-
-                        # ----- 查詢Wikipedia的停用詞擷取 ------------------------------
-                        elif res[0] - 1 == 530:
-                            search_WIKI_KEYWORD = ""
-                            for w in final_query: 
-                                if w not in cluster530_stopwords:
-                                    search_WIKI_KEYWORD += w
-                    
-                            print('\n查詢 Wikipedia 的關鍵字擷取：', search_WIKI_KEYWORD)
-                            raw_res = A_list[res[0]]
-                
-                            try:
-                                # 摘要
-                                page1 = wptools.page(search_WIKI_KEYWORD, lang='zh').get_restbase('/page/summary/')
-                                summary = page1.data['exrest']
-                                wikiURL = page1.data['url']
-
-                                cc = OpenCC('s2twp')
-                                final_res = cc.convert(summary) + '\n' + wikiURL
+                                print('\n查詢館藏的關鍵字擷取：', search_FJULIB_KEYWORD)
+                                raw_res = 'https://library.lib.fju.edu.tw:444/search~S0*cht/?searchtype=Y&searcharg=' #A_list[res[0]]
+                                final_res = raw_res + search_FJULIB_KEYWORD
                                 msg = [Q_list[res[0]], final_res]
                                 msg_list.append(msg)
-                            except:
-                                pass
+
+                            # ----- 查詢Wikipedia的停用詞擷取 ------------------------------
+                            elif res[0] - 1 == 530:
+                                search_WIKI_KEYWORD = ""
+                                for w in final_query: 
+                                    if w not in cluster530_stopwords:
+                                        search_WIKI_KEYWORD += w
+                    
+                                print('\n查詢 Wikipedia 的關鍵字擷取：', search_WIKI_KEYWORD)
+                                raw_res = A_list[res[0]]
+                
+                                try:
+                                    # 摘要
+                                    page1 = wptools.page(search_WIKI_KEYWORD, lang='zh').get_restbase('/page/summary/')
+                                    print(page1)
+                                    summary = page1.data['exrest']
+                                    wikiURL = page1.data['url']
+
+                                    cc = OpenCC('s2twp')
+                                    final_res = cc.convert(summary) + '\n' + wikiURL
+                                    msg = [Q_list[res[0]], final_res]
+                                    msg_list.append(msg)
+                                except:
+                                    #final_res = '很抱歉，Wikipedia 上找不到 {} 此一條目！'.format(search_WIKI_KEYWORD)
+                                    final_res = 'https://zh.wikipedia.org/wiki/{}'.format(search_WIKI_KEYWORD)
+                                    msg = [Q_list[res[0]], final_res]
+                                    msg_list.append(msg)
                         
-                        elif res[0] - 1 == 139 or res[0] - 1 == 158 or res[0] - 1 == 65:
-                            pos_Nd = []
-                            if 'Nd' in query_pos:
-                                for ws, pos in zip(query, query_pos):
-                                    if pos == 'Nd':
-                                        pos_Nd.append(ws)
-                                        #print('---', ws, pos)
-                                    else:
-                                        pass
+                            elif res[0] - 1 == 139 or res[0] - 1 == 158 or res[0] - 1 == 65:
+                                pos_Nd = []
+                                if 'Nd' in query_pos:
+                                    for ws, pos in zip(query, query_pos):
+                                        if pos == 'Nd':
+                                            pos_Nd.append(ws)
+                                            #print('---', ws, pos)
+                                        else:
+                                            pass
                                         
-                                if '今天' in pos_Nd:              
-                                    mytime_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
-                                    mytime_tw = mytime_utc.astimezone(timezone(timedelta(hours=8)))
-                                    print(mytime_tw)
-                                    final_res = judge_day(mytime_tw.strftime("%A"))
+                                    if '今天' in pos_Nd:              
+                                        mytime_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
+                                        mytime_tw = mytime_utc.astimezone(timezone(timedelta(hours=8)))
+                                        print(mytime_tw)
+                                        final_res = judge_day(mytime_tw.strftime("%A"))
                                     
-                                    msg = [Q_list[res[0]], final_res]
-                                    msg_list.append(msg)
+                                        msg = [Q_list[res[0]], final_res]
+                                        msg_list.append(msg)
                                     
-                                elif '週一' in pos_Nd or '平日' in pos_Nd or '週二' in pos_Nd or '週三' in pos_Nd or '週四' in pos_Nd or '週五' in pos_Nd:
-                                    final_res = judge_day('Weekdays')
-                                    msg = [Q_list[res[0]], final_res]
-                                    msg_list.append(msg)
+                                    elif '週一' in pos_Nd or '平日' in pos_Nd or '週二' in pos_Nd or '週三' in pos_Nd or '週四' in pos_Nd or '週五' in pos_Nd:
+                                        final_res = judge_day('Weekdays')
+                                        msg = [Q_list[res[0]], final_res]
+                                        msg_list.append(msg)
                                                                 
-                                elif '週六' in pos_Nd:
-                                    final_res = judge_day('Saturday')
-                                    msg = [Q_list[res[0]], final_res]
-                                    msg_list.append(msg)
+                                    elif '週六' in pos_Nd:
+                                        final_res = judge_day('Saturday')
+                                        msg = [Q_list[res[0]], final_res]
+                                        msg_list.append(msg)
                                     
-                                elif '週日' in pos_Nd:
-                                    final_res = judge_day('Sunday')
-                                    msg = [Q_list[res[0]], final_res]
-                                    msg_list.append(msg)
+                                    elif '週日' in pos_Nd:
+                                        final_res = judge_day('Sunday')
+                                        msg = [Q_list[res[0]], final_res]
+                                        msg_list.append(msg)
                                     
-                                elif '假日' in pos_Nd:
-                                    final_res1 = judge_day('Saturday')
-                                    final_res2 = judge_day('Sunday')
-                                    msg = [Q_list[res[0]], final_res1 + '\n------\n' + final_res2]
-                                    msg_list.append(msg)
+                                    elif '假日' in pos_Nd:
+                                        final_res1 = judge_day('Saturday')
+                                        final_res2 = judge_day('Sunday')
+                                        msg = [Q_list[res[0]], final_res1 + '\n------\n' + final_res2]
+                                        msg_list.append(msg)
                                 
+                                    else:
+                                        final_res = '輔大圖書館各館的開放時間，詳情請見: http://web.lib.fju.edu.tw/chi/intro/opentime\n國定及校定假日特殊開放時間: http://web.lib.fju.edu.tw/chi/news/20200915'
+                                        msg = [Q_list[res[0]], final_res]
+                                        msg_list.append(msg)
+                                    
                                 else:
                                     final_res = '輔大圖書館各館的開放時間，詳情請見: http://web.lib.fju.edu.tw/chi/intro/opentime\n國定及校定假日特殊開放時間: http://web.lib.fju.edu.tw/chi/news/20200915'
                                     msg = [Q_list[res[0]], final_res]
                                     msg_list.append(msg)
-                                    
-                            else:
-                                final_res = '輔大圖書館各館的開放時間，詳情請見: http://web.lib.fju.edu.tw/chi/intro/opentime\n國定及校定假日特殊開放時間: http://web.lib.fju.edu.tw/chi/news/20200915'
-                                msg = [Q_list[res[0]], final_res]
-                                msg_list.append(msg)
                         
-                        elif res[0] - 1 == 318:
-                            if '大學生' in final_query:
-                                final_res = '大學部學生借閱總數以三十冊為限，借期為二十八日；無人預約時得續借一次。'
-                                msg = [Q_list[res[0]], final_res]
-                                msg_list.append(msg)
+                            elif res[0] - 1 == 318:
+                                if '大學生' in final_query:
+                                    final_res = '大學部學生借閱總數以三十冊為限，借期為二十八日；無人預約時得續借一次。'
+                                    msg = [Q_list[res[0]], final_res]
+                                    msg_list.append(msg)
                                 
-                            elif '研究生' in final_query:
-                                final_res = '研究生借閱總數以四十冊為限，借期為四十二日；無人預約時得續借一次。研究生自入學第二年起，因撰寫學位論文之需而提出申請者，得辦理延長借書。延長借書之借期為六十日；無人預約時得續借一次。'
-                                msg = [Q_list[res[0]], final_res]
-                                msg_list.append(msg)
+                                elif '研究生' in final_query:
+                                    final_res = '研究生借閱總數以四十冊為限，借期為四十二日；無人預約時得續借一次。研究生自入學第二年起，因撰寫學位論文之需而提出申請者，得辦理延長借書。延長借書之借期為六十日；無人預約時得續借一次。'
+                                    msg = [Q_list[res[0]], final_res]
+                                    msg_list.append(msg)
                             
-                            elif '老師' in final_query:
-                                final_res = '本校教師借閱總數以七十五冊為限，借期為一百二十日；無人預約時得續借一次。教師以其研究計畫專案經費購買之圖書，得辦理「專案借書」，借期至該計畫結束為止，不受第四款冊數及借期之限制。'
-                                msg = [Q_list[res[0]], final_res]
-                                msg_list.append(msg)
+                                elif '老師' in final_query or '教師' in final_query:
+                                    final_res = '本校教師借閱總數以七十五冊為限，借期為一百二十日；無人預約時得續借一次。教師以其研究計畫專案經費購買之圖書，得辦理「專案借書」，借期至該計畫結束為止，不受第四款冊數及借期之限制。'
+                                    msg = [Q_list[res[0]], final_res]
+                                    msg_list.append(msg)
                             
-                            elif '校友' in final_query:
-                                final_res = '校友及退休人員借書以五冊為限，借期為二十八日，不得續借。'
-                                msg = [Q_list[res[0]], final_res]
-                                msg_list.append(msg)
+                                elif '校友' in final_query:
+                                    final_res = '校友及退休人員借書以五冊為限，借期為二十八日，不得續借。'
+                                    msg = [Q_list[res[0]], final_res]
+                                    msg_list.append(msg)
                                 
+                                else:
+                                    final_res = A_list[res[0]]
+                                    msg = [Q_list[res[0]], final_res]
+                                    msg_list.append(msg)
+                               
+                            elif res[0] - 1 == 356:
+                                pass
+                            
                             else:
                                 final_res = A_list[res[0]]
                                 msg = [Q_list[res[0]], final_res]
                                 msg_list.append(msg)
-                               
-                        elif res[0] - 1 == 356:
-                            pass
-                            
-                        else:
-                            final_res = A_list[res[0]]
-                            msg = [Q_list[res[0]], final_res]
-                            msg_list.append(msg)
+                    else:
+                        final_res = event.message.text
+                        msg = [Q_list[res[0]], final_res]
+                        msg_list.append(msg)
+                        break
                         
                 #print("排名 {:2d} DOCID {:8d} ClusterN {:8d} SCORE {:.3f} \n內容 {:}\n回覆 {:}\n".format(rank+1, res[0], res[0]-1, res[1], Q_list[res[0]][:50], final_res))
                 
