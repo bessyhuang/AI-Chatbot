@@ -216,7 +216,8 @@ custom_match_dict = {
     '系統':'電腦', '借閱證':'閱覽證', 
     '團討室':'團體 討論室', '互借':'館際 互借', 
     '智慧財產權':'智財權', '誰': 'wiki', '書籍':'書',
-    '那些':'哪些', '哪些':'那些', '開':'開館'
+    '那些':'哪些', '哪些':'那些', '開':'開館', 
+    '吃':'食物', '別的': '其他', '連不上':'無法 連線'
     } # wiki_category : FAQ_vocab
 
 # ------------------------------------------------------------
@@ -234,6 +235,11 @@ for ws in Cluster194:
 cluster529_stopwords.add('可以')
 cluster529_stopwords.add('幫')
 cluster529_stopwords.add('查')
+cluster529_stopwords.add('什麼')
+cluster529_stopwords.add('推薦')
+cluster529_stopwords.add('最近')
+cluster529_stopwords.add('好看')
+
 #print('***', cluster529_stopwords)
 # ------------------------------------------------------------
 # ----- 查詢Wikipedia的停用詞擷取 ------------------------------
@@ -257,7 +263,7 @@ def query_WS(query):
     word_sentence_list = ws([query], 
             segment_delimiter_set = {":" ,"：" ,":" ,".." ,"，" ,"," ,"-" ,"─" ,"－" ,"──" ,"." ,"……" ,"…" ,"..." ,"!" ,"！" ,"〕" ,"」" ,"】" ,"》" ,"【" ,"）" ,"｛" ,"｝" ,"“" ,"(" ,"「" ,"]" ,")" ,"（" ,"《" ,"[" ,"『" ,"』" ,"〔" ,"、" ,"．" ,"。" ,"." ,"‧" ,"﹖" ,"？" ,"?" ,"?" ,"；" ," 　" ,"" ,"　" ,"" ,"ㄟ" ," :" ,"？" ,"〞" ,"]" ,"／" ,"=" ,"？" ," -" ,"@" ,"." ,"～" ," ：" ,"：" ,"<", ">" ," - " ,"──" ,"~~" ,"`" ,": " ,"#" ,"/" ,"〝" ,"：" ,"'" ,"$C" ,"?" ,"?" ,"*" ,"／" ,"[" ,"." ,"?" ,"-" ,"～～" ,"\""},
             recommend_dictionary = dictionary1, # 效果最好！
-            coerce_dictionary = construct_dictionary({'OPAC':2, 'OK':2, '滯還金':2, '浮水印':2, '索書號':2, '圖書館':2, '館藏':2}), # 強制字典
+            coerce_dictionary = construct_dictionary({'OPAC':2, 'OK':2, '滯還金':2, '浮水印':2, '索書號':2, '圖書館':2, '館藏':2, '館內':2, '連不上':2}), # 強制字典 
     )
     print(word_sentence_list[0])
     
@@ -309,8 +315,12 @@ def callback(request):
                         # 沒有在 FAQ ，也沒有在 wiki
                         try:
                             query_term = custom_match_dict[w]
-                            final_query.append(w)
-                            final_query.append(query_term)
+                            if ' ' in query_term:
+                                for i in query_term.split():
+                                    final_query.append(i)
+                            else:
+                                final_query.append(w)
+                                final_query.append(query_term)
                         except:
                             final_query.append(w)
 
@@ -332,7 +342,7 @@ def callback(request):
                     if res[1] > 0.673:
                         if res[1] > avg_score:
                             # ----- 查詢館藏的關鍵字擷取 -----------------------------------
-                            if res[0] - 1 == 529 or res[0] - 1 == 194 :
+                            if res[0] - 1 == 529 or res[0] - 1 == 194 or res[0] - 1 == 129:
                                 search_FJULIB_KEYWORD = ""
                                 for w in final_query: 
                                     if w not in cluster529_stopwords:
@@ -345,7 +355,7 @@ def callback(request):
                                 msg_list.append(msg)
 
                             # ----- 查詢Wikipedia的停用詞擷取 ------------------------------
-                            elif res[0] - 1 == 530:
+                            elif res[0] - 1 == 530 or res[0] - 1 == 356:
                                 search_WIKI_KEYWORD = ""
                                 for w in final_query: 
                                     if w not in cluster530_stopwords:
@@ -370,15 +380,32 @@ def callback(request):
                                     final_res = 'https://zh.wikipedia.org/wiki/{}'.format(search_WIKI_KEYWORD)
                                     msg = [Q_list[res[0]], final_res]
                                     msg_list.append(msg)
-                        
-                            elif res[0] - 1 == 139 or res[0] - 1 == 158 or res[0] - 1 == 65 or res[0] - 1 == 85:
+                                break
+                                
+                            elif res[0] - 1 == 139 or res[0] - 1 == 158 or res[0] - 1 == 65 or res[0] - 1 == 85 or res[0] - 1 == 118:
                                 final_res = Judge.OpeningHours_parser(query, query_pos)
                                 msg = [Q_list[res[0]], final_res]
                                 msg_list.append(msg)
                                 break
+                            
+                            elif res[0] - 1 == 427 or res[0] - 1 == 426:
+                                final_res = A_list[res[0]]
+                                msg = [Q_list[res[0]], final_res]
+                                msg_list.append(msg)
+                                break
                                 
+                            elif res[0] - 1 == 386:
+                                if "疫情" in query:
+                                    final_res = Judge.OpeningHours_parser(query, query_pos)
+                                    msg = [Q_list[res[0]], final_res]
+                                    msg_list.append(msg)  
+                                    break
+                                else:
+                                    final_res = A_list[res[0]]
+                                    msg = [Q_list[res[0]], final_res]
+                                    msg_list.append(msg)                                
                                 
-                            elif res[0] - 1 == 318:
+                            elif res[0] - 1 == 318 or res[0] - 1 == 26 or res[0] - 1 == 18:
                                 if '大學生' in final_query:
                                     final_res = '大學部學生借閱總數以三十冊為限，借期為二十八日；無人預約時得續借一次。'
                                     msg = [Q_list[res[0]], final_res]
@@ -404,8 +431,8 @@ def callback(request):
                                     msg = [Q_list[res[0]], final_res]
                                     msg_list.append(msg)
                                
-                            elif res[0] - 1 == 356:
-                                pass
+                            #elif :
+                                #pass
                             
                             else:
                                 final_res = A_list[res[0]]

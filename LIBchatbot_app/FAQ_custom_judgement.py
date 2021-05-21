@@ -15,6 +15,9 @@ def OpeningHours_parser(query_ws, query_pos):
     for ws, pos in zip(query_ws, query_pos):
         if pos == 'Nd':
             Nd_words.append(ws)
+        elif ws == '疫情':
+            return '因短期疫情持續升高，雙北已提升至三級警戒，依防疫規定，圖書館屬應關閉場所，本館緊急於 5/15 中午 12:30 起閉館。若開放時間及借還書相關服務有變動，請隨時留意圖書館網站公告，不便之處，敬請見諒。\nhttp://web.lib.fju.edu.tw/chi/news/20210517'
+            
     #print('---', Nd_words)
     
     if Nd_words != [] :

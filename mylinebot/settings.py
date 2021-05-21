@@ -26,9 +26,9 @@ LINE_CHANNEL_ACCESS_TOKEN = 'DLgh+rTpC6vg7tRo9B92kc7SuKx3KC7POSEs0stIBS3L0iUmspq
 LINE_CHANNEL_SECRET = '83157535b70be5f05a019b37fe4afbfe'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['4593b7b83382.ngrok.io']
+ALLOWED_HOSTS = ['91816ec08c48.ngrok.io']
 
 
 # Application definition
