@@ -338,7 +338,7 @@ def callback(request):
                 
                 
                 for rank, res in enumerate(results):
-                    print("排名 {:2d} DOCID {:8d} ClusterN {:8d} SCORE {:.3f} \n內容 {:}\n".format(rank+1, res[0], res[0]-1, res[1], Q_list[res[0]][:50]))
+                    print("排名 {:2d}\tClusterN {:8d}\tSCORE {:.3f} \n- 訓練語料 {:}".format(rank+1, res[0], res[1], Q_list[res[0]][:]))
                     if res[1] > 0.673:
                         if res[1] > avg_score:
                             # ----- 查詢館藏的關鍵字擷取 -----------------------------------
@@ -353,6 +353,7 @@ def callback(request):
                                 final_res = raw_res + search_FJULIB_KEYWORD
                                 msg = [Q_list[res[0]], final_res]
                                 msg_list.append(msg)
+                                print("- 系統回覆 {:}\n".format(msg[1]))
 
                             # ----- 查詢Wikipedia的停用詞擷取 ------------------------------
                             elif res[0] - 1 == 530 or res[0] - 1 == 356:
@@ -375,61 +376,78 @@ def callback(request):
                                     final_res = cc.convert(summary) + '\n' + wikiURL
                                     msg = [Q_list[res[0]], final_res]
                                     msg_list.append(msg)
+                                    print("- 系統回覆 {:}\n".format(msg[1]))
                                 except:
                                     #final_res = '很抱歉，Wikipedia 上找不到 {} 此一條目！'.format(search_WIKI_KEYWORD)
                                     final_res = 'https://zh.wikipedia.org/wiki/{}'.format(search_WIKI_KEYWORD)
                                     msg = [Q_list[res[0]], final_res]
                                     msg_list.append(msg)
+                                    print("- 系統回覆 {:}\n".format(msg[1]))
                                 break
                                 
                             elif res[0] - 1 == 139 or res[0] - 1 == 158 or res[0] - 1 == 65 or res[0] - 1 == 85 or res[0] - 1 == 118:
                                 final_res = Judge.OpeningHours_parser(query, query_pos)
                                 msg = [Q_list[res[0]], final_res]
                                 msg_list.append(msg)
+                                print("- 系統回覆 {:}\n".format(msg[1]))
                                 break
                             
                             elif res[0] - 1 == 427 or res[0] - 1 == 426:
                                 final_res = A_list[res[0]]
                                 msg = [Q_list[res[0]], final_res]
                                 msg_list.append(msg)
+                                print("- 系統回覆 {:}\n".format(msg[1]))
                                 break
                                 
                             elif res[0] - 1 == 386:
+                                """
                                 if "疫情" in query:
                                     final_res = Judge.OpeningHours_parser(query, query_pos)
                                     msg = [Q_list[res[0]], final_res]
-                                    msg_list.append(msg)  
-                                    break
+                                    msg_list.append(msg)
+                                    print("- 系統回覆 {:}\n".format(msg[1]))
+                                    ###break
                                 else:
                                     final_res = A_list[res[0]]
                                     msg = [Q_list[res[0]], final_res]
-                                    msg_list.append(msg)                                
+                                    msg_list.append(msg)         
+                                    print("- 系統回覆 {:}\n".format(msg[1]))
+                                """
+                                final_res = A_list[res[0]]
+                                msg = [Q_list[res[0]], final_res]
+                                msg_list.append(msg)         
+                                print("- 系統回覆 {:}\n".format(msg[1]))
                                 
                             elif res[0] - 1 == 318 or res[0] - 1 == 26 or res[0] - 1 == 18:
                                 if '大學生' in final_query:
                                     final_res = '大學部學生借閱總數以三十冊為限，借期為二十八日；無人預約時得續借一次。'
                                     msg = [Q_list[res[0]], final_res]
                                     msg_list.append(msg)
+                                    print("- 系統回覆 {:}\n".format(msg[1]))
                                 
                                 elif '研究生' in final_query:
                                     final_res = '研究生借閱總數以四十冊為限，借期為四十二日；無人預約時得續借一次。研究生自入學第二年起，因撰寫學位論文之需而提出申請者，得辦理延長借書。延長借書之借期為六十日；無人預約時得續借一次。'
                                     msg = [Q_list[res[0]], final_res]
                                     msg_list.append(msg)
+                                    print("- 系統回覆 {:}\n".format(msg[1]))
                             
                                 elif '老師' in final_query or '教師' in final_query:
                                     final_res = '本校教師借閱總數以七十五冊為限，借期為一百二十日；無人預約時得續借一次。教師以其研究計畫專案經費購買之圖書，得辦理「專案借書」，借期至該計畫結束為止，不受第四款冊數及借期之限制。'
                                     msg = [Q_list[res[0]], final_res]
                                     msg_list.append(msg)
+                                    print("- 系統回覆 {:}\n".format(msg[1]))
                             
                                 elif '校友' in final_query:
                                     final_res = '校友及退休人員借書以五冊為限，借期為二十八日，不得續借。'
                                     msg = [Q_list[res[0]], final_res]
                                     msg_list.append(msg)
+                                    print("- 系統回覆 {:}\n".format(msg[1]))
                                 
                                 else:
                                     final_res = A_list[res[0]]
                                     msg = [Q_list[res[0]], final_res]
                                     msg_list.append(msg)
+                                    print("- 系統回覆 {:}\n".format(msg[1]))
                                
                             #elif :
                                 #pass
@@ -438,12 +456,15 @@ def callback(request):
                                 final_res = A_list[res[0]]
                                 msg = [Q_list[res[0]], final_res]
                                 msg_list.append(msg)
+                                print("- 系統回覆 {:}\n".format(msg[1]))
+                                
                     else:
                         final_res = event.message.text
                         msg = [Q_list[res[0]], final_res]
                         msg_list.append(msg)
-                        break
-                        
+                        print("- 系統回覆 {:}\n".format(msg[1]))
+                        ###break
+                                
                 #print("排名 {:2d} DOCID {:8d} ClusterN {:8d} SCORE {:.3f} \n內容 {:}\n回覆 {:}\n".format(rank+1, res[0], res[0]-1, res[1], Q_list[res[0]][:50], final_res))
                 
                 line_bot_api.reply_message(event.reply_token, [TextSendMessage(text=a) for q, a in msg_list])

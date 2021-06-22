@@ -28,7 +28,7 @@ LINE_CHANNEL_SECRET = '83157535b70be5f05a019b37fe4afbfe'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['91816ec08c48.ngrok.io']
+ALLOWED_HOSTS = ['4f51136f731f.ngrok.io']
 
 
 # Application definition
