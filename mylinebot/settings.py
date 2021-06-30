@@ -22,13 +22,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '_8&p11_jlr@unlkaq3ve=4sl!yn8hh5#f#m5nrtq^#%*_iyidc'
 
-LINE_CHANNEL_ACCESS_TOKEN = 'DLgh+rTpC6vg7tRo9B92kc7SuKx3KC7POSEs0stIBS3L0iUmspqd5DpKRG2NR6MVU0H8G35sjH508FJDnBGX79oUQq/Vjvxx466NdjvEKbqggAToZ53nDCf6n177WXe8cu8gnN+YYEWt480LKMqyAwdB04t89/1O/w1cDnyilFU='
-LINE_CHANNEL_SECRET = '83157535b70be5f05a019b37fe4afbfe'
+LINE_CHANNEL_ACCESS_TOKEN = 'OeKmbOiOVFq0sdXRWKO6IKu9fWHMxtxzNojXab315iEoEPsIEm6N9PKp6BacBR7pCinlRsCrX4RKKl9oBziklKUCuGbD52MS2inDVWwn/5W5urNcgTYlcjbOQ+4rImy0PbdCfnPaqQFJA2mxJuN9kwdB04t89/1O/w1cDnyilFU='
+LINE_CHANNEL_SECRET = '831d4872c36c50e0893d15d163902155'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['4f51136f731f.ngrok.io']
+ALLOWED_HOSTS = ['2a8607cf0448.ngrok.io']
 
 
 # Application definition
