@@ -467,7 +467,11 @@ def callback(request):
                                 
                 #print("排名 {:2d} DOCID {:8d} ClusterN {:8d} SCORE {:.3f} \n內容 {:}\n回覆 {:}\n".format(rank+1, res[0], res[0]-1, res[1], Q_list[res[0]][:50], final_res))
                 
-                line_bot_api.reply_message(event.reply_token, [TextSendMessage(text=a) for q, a in msg_list])
+                new_msg_list = []
+                for q, a in msg_list:
+                    if a not in new_msg_list:
+                        new_msg_list.append(a)
+                line_bot_api.reply_message(event.reply_token, [TextSendMessage(text=a) for a in new_msg_list])
         return HttpResponse()
     else:
         return HttpResponseBadRequest()
